@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,12 +80,12 @@ D3D12Transfer::D3D12Transfer(size_t p_byteSize, DeviceIndex p_srcDevIdx, DeviceI
                                                            rootSig->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
   D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDesc = {
       .pRootSignature = m_rootSignature.Get(),
-      .CS = {.pShaderBytecode = gen_dxil, .BytecodeLength = gen_dxil_sizeInBytes},
+      .CS = {.pShaderBytecode = gbb_slang_gen_dxil, .BytecodeLength = gbb_slang_gen_dxil_sizeInBytes},
       .NodeMask = g_d3d12->getNodeMaskAll(),
       .Flags = D3D12_PIPELINE_STATE_FLAG_NONE};
   GBB_THROW_UNLESS_D3D(
       g_d3d12->dev()->CreateComputePipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_genPipelineState)));
-  pipelineStateDesc.CS = {.pShaderBytecode = check_dxil, .BytecodeLength = check_dxil_sizeInBytes};
+  pipelineStateDesc.CS = {.pShaderBytecode = gbb_slang_check_dxil, .BytecodeLength = gbb_slang_check_dxil_sizeInBytes};
   GBB_THROW_UNLESS_D3D(
       g_d3d12->dev()->CreateComputePipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_checkPipelineState)));
 }

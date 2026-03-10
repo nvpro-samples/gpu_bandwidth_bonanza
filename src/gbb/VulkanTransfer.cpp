@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,7 @@
 
 #include <vector>
 
-#include "shaders/gbb.slang.check.spv.h"
-#include "shaders/gbb.slang.gen.spv.h"
+#include "shaders/gbb.slang.spv.h"
 
 namespace gbb {
 struct ShaderInput {
@@ -63,17 +62,15 @@ VulkanTransfer::VulkanTransfer(size_t p_byteSize, DeviceIndex p_srcDevIdx, Devic
   m_pipelineLayout = g_vulkan->dev().createPipelineLayoutUnique(
       vk::PipelineLayoutCreateInfo({}, m_descriptorSetLayout.get(), pushConstantRange));
 
-  vk::UniqueShaderModule genShaderModule =
-      g_vulkan->dev().createShaderModuleUnique(vk::ShaderModuleCreateInfo({}, gen_spirv));
-  vk::UniqueShaderModule checkShaderModule =
-      g_vulkan->dev().createShaderModuleUnique(vk::ShaderModuleCreateInfo({}, check_spirv));
+  vk::UniqueShaderModule shaderModule =
+      g_vulkan->dev().createShaderModuleUnique(vk::ShaderModuleCreateInfo({}, gbb_slang_spv));
 
   std::vector<vk::ComputePipelineCreateInfo> pipelineCreateInfos = {
       vk::ComputePipelineCreateInfo(
-          {}, vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eCompute, genShaderModule.get(), "main"),
+          {}, vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eCompute, shaderModule.get(), "gen"),
           m_pipelineLayout.get()),
       vk::ComputePipelineCreateInfo(
-          {}, vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eCompute, checkShaderModule.get(), "main"),
+          {}, vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eCompute, shaderModule.get(), "check"),
           m_pipelineLayout.get())};
   auto [result, pipelines] = g_vulkan->dev().createComputePipelinesUnique({}, pipelineCreateInfos);
   m_genPipeline = std::move(pipelines[0]);
@@ -102,7 +99,7 @@ VulkanTransfer::VulkanTransfer(size_t p_byteSize, DeviceIndex p_srcDevIdx, Devic
 
 VulkanTransfer::~VulkanTransfer() {
   try {
-    vkUnmapMemory(g_vulkan->dev(), m_errorCountBuffer.mem.get());
+    g_vulkan->dev().unmapMemory(m_errorCountBuffer.mem.get());
   } catch (const vk::SystemError &ex) {
     GBB_ERROR("{}", ex.what());
   }

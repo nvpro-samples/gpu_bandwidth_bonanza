@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@
 #include "VulkanTransfer.hpp"
 
 #include <variant>
-#include <vulkan/vulkan_core.h>
 
 namespace gbb {
 VulkanApi::VulkanApi(std::variant<uint32_t, const uint8_t *> p_selectedDevice, bool p_printMemProps) {
