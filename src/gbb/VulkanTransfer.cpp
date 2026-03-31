@@ -127,7 +127,16 @@ VulkanTransfer::BufferContainer VulkanTransfer::allocateBuffer(DeviceIndex p_dev
   vk::UniqueDeviceMemory mem = g_vulkan->dev().allocateMemoryUnique(memAllocInfo.get());
   vk::UniqueBuffer buffer = g_vulkan->dev().createBufferUnique(
       vk::BufferCreateInfo({}, this->getByteSize(), p_usage, vk::SharingMode::eExclusive));
-  g_vulkan->dev().bindBufferMemory(buffer.get(), mem.get(), 0);
+  vk::BindBufferMemoryInfo bindMemInfo(buffer.get(), mem.get(), 0);
+  std::vector<uint32_t> deviceIndices;
+  vk::BindBufferMemoryDeviceGroupInfo deviceGroupInfo;
+  if (!p_devIdx.isHost()) {
+    uint32_t physDevIdx = p_devIdx.getOrIfHost(0);
+    deviceIndices.assign(g_vulkan->getPhysicalDeviceCount(), physDevIdx);
+    deviceGroupInfo.setDeviceIndices(deviceIndices);
+    bindMemInfo.setPNext(&deviceGroupInfo);
+  }
+  g_vulkan->dev().bindBufferMemory2(bindMemInfo);
   return {.mem = std::move(mem), .buffer = std::move(buffer)};
 }
 
