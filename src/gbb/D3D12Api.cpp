@@ -53,7 +53,7 @@ D3D12Api::D3D12Api(std::variant<uint32_t, const LUID *> p_selectedAdapter) {
     DXGI_ADAPTER_DESC3 adapterDesc = {};
     GBB_THROW_UNLESS_D3D(adapter->GetDesc3(&adapterDesc));
     ComPtr<ID3D12Device4> device;
-    GBB_THROW_UNLESS_D3D(D3D12CreateDevice(m_adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)));
+    GBB_THROW_UNLESS_D3D(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)));
     bool luidMatches = std::holds_alternative<const LUID *>(p_selectedAdapter) &&
                        *std::get<const LUID *>(p_selectedAdapter) == adapterDesc.AdapterLuid;
     bool indexMatches =
