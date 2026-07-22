@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,19 +78,20 @@ void printVersion() {
 #endif
 }
 
-void runBenchmarks(ResultProcessor &p_resultProcessor, Api &p_api, std::chrono::milliseconds p_durationPerDirection) {
+void runBenchmarks(ResultProcessor &p_resultProcessor, Api &p_api, std::chrono::milliseconds p_durationPerDirection,
+                   size_t p_byteSizePerTransfer) {
   std::vector<TransferBenchmark::Result> results;
-  results.emplace_back(TransferBenchmark::run(*p_api.createTransfer(256ull << 20, DeviceIndex::HOST, DeviceIndex::HOST),
-                                              p_durationPerDirection));
+  results.emplace_back(TransferBenchmark::run(
+      *p_api.createTransfer(p_byteSizePerTransfer, DeviceIndex::HOST, DeviceIndex::HOST), p_durationPerDirection));
   for (uint32_t src = 0; src < p_api.getPhysicalDeviceCount(); ++src) {
-    results.emplace_back(
-        TransferBenchmark::run(*p_api.createTransfer(256ull << 20, src, DeviceIndex::HOST), p_durationPerDirection));
+    results.emplace_back(TransferBenchmark::run(*p_api.createTransfer(p_byteSizePerTransfer, src, DeviceIndex::HOST),
+                                                p_durationPerDirection));
     for (uint32_t dst = 0; dst < p_api.getPhysicalDeviceCount(); ++dst) {
       results.emplace_back(
-          TransferBenchmark::run(*p_api.createTransfer(256ull << 20, src, dst), p_durationPerDirection));
+          TransferBenchmark::run(*p_api.createTransfer(p_byteSizePerTransfer, src, dst), p_durationPerDirection));
     }
-    results.emplace_back(
-        TransferBenchmark::run(*p_api.createTransfer(256ull << 20, DeviceIndex::HOST, src), p_durationPerDirection));
+    results.emplace_back(TransferBenchmark::run(*p_api.createTransfer(p_byteSizePerTransfer, DeviceIndex::HOST, src),
+                                                p_durationPerDirection));
   }
   for (const TransferBenchmark::Result &result : results) {
     p_resultProcessor.pushResult(result);
@@ -185,13 +186,13 @@ int32_t main(const std::vector<std::string> &p_args) {
   ResultProcessor rp;
   for (Api *api : apis) {
     try {
-      runBenchmarks(rp, *api, options.durationPerDirection);
+      runBenchmarks(rp, *api, options.durationPerDirection, options.byteSizePerTransfer);
     } catch (const Exception &ex) {
       (void)ex;
       GBB_WARN("{} test quit unexpectedly.", api->getName());
     }
   }
-  SystemMemoryTransfer sysMemTransfer(256ull << 20);
+  SystemMemoryTransfer sysMemTransfer(options.byteSizePerTransfer);
   rp.pushResult(TransferBenchmark::run(sysMemTransfer, options.durationPerDirection));
   if (!rp.isEmpty()) {
     GBB_INFO("\n════╡Results╞════");

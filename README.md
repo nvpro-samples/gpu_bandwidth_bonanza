@@ -15,23 +15,29 @@ gpu_bandwidth_bonanza is a command-line utility designed to benchmark and analyz
 - Symmetry Analysis: Calculates a "transfer speed symmetry rating" to quantify how balanced the performance is between GPUs.
 
 ## Usage
-`gpu_bandwidth_bonanza --help | -h`
-`gpu_bandwidth_bonanza --version | -v`
-`gpu_bandwidth_bonanza [--vulkan-device-group <index> | --dxgi-adapter <index>] [--no-vulkan] [--no-cuda] [--no-d3d12] [--duration <millis>] [--output <path>]`
+```
+gpu_bandwidth_bonanza --help | -h
 
+gpu_bandwidth_bonanza --version | -v
+
+gpu_bandwidth_bonanza [--vulkan-device-group <index> | --no-vulkan] [--no-d3d12] [--no-cuda] [--duration <millis>] [--transfer-size <mib>] [--output <path>] [--print-vulkan-mem-props]
+
+gpu_bandwidth_bonanza [--dxgi-adapter <index> | --no-d3d12] [--no-vulkan] [--no-cuda] [--duration <millis>] [--transfer-size <mib>] [--output <path>] [--print-vulkan-mem-props]
+```
 ### Options
 |Option                       |Effect|
 |-----------------------------|------|
 |--help, -h                   |Shows this text|
 |--version, -v                |Shows version and build information|
-|--vulkan-device-group <index>|Selects the GPUs by their Vulkan device group|
-|--dxgi-adapter <index>       |Selects the GPUs by their DXGI adapter|
+|--vulkan-device-group <index>|Selects Vulkan device group by index|
+|--dxgi-adapter <index>       |Selects DXGI adapter by index|
 |--no-vulkan                  |Disables Vulkan|
 |--no-cuda                    |Disables CUDA and NVML|
 |--no-d3d12                   |Disables D3D12|
 |--print-vulkan-mem-props     |Prints memory properties for each physical Vulkan device|
-|--duration <millis>          |Sets the measuring period in milliseconds per transfer; default: 1000|
-|--output <path>              |Writes the results to a csv file|
+|--duration <millis>          |Sets the measurement duration in milliseconds per API and transfer direction; default: 1000|
+|--transfer-size <mib>        |Sets the chunk size per individual transfer in MiB; default: 256
+|--output <path>              |Writes the results to a CSV file|
 
 ## Understanding the Output
 The output is organized into several sections for clarity.

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,25 +22,31 @@
 
 namespace gbb {
 void Options::printUsage() {
-  std::string optionalOptions = "";
+  std::string optNoCuda = "";
+  std::string optNoD3D12 = "";
 #ifdef GBB_CUDA_ENABLED
-  optionalOptions += " [--no-cuda]";
+  optNoCuda = " [--no-cuda]";
 #endif
 #ifdef GBB_D3D12_ENABLED
-  optionalOptions += " [--no-d3d12]";
+  optNoD3D12 = " [--no-d3d12]";
 #endif
   GBB_INFO("Usage:");
   GBB_INFO("  " APP_NAME " --help | -h");
   GBB_INFO("  " APP_NAME " --version | -v");
-  GBB_INFO("  " APP_NAME " [--vulkan-device-group <index> | --dxgi-adapter <index>] [--no-vulkan]{} [--duration "
-           "<millis>] [--output <path>]",
-           optionalOptions);
+  GBB_INFO("  " APP_NAME " [--vulkan-device-group <index> | --no-vulkan]{}{} [--duration <millis>] [--transfer-size "
+           "<mib>] [--output <path>] [--print-vulkan-mem-props]",
+           optNoD3D12, optNoCuda);
+#ifdef GBB_D3D12_ENABLED
+  GBB_INFO("  " APP_NAME " [--dxgi-adapter <index> | --no-d3d12] [--no-vulkan]{} [--duration "
+           "<millis>] [--transfer-size <mib>] [--output <path>] [--print-vulkan-mem-props]",
+           optNoCuda);
+#endif
   GBB_INFO("Options:");
   GBB_INFO("  --help, -h                    │ Shows this text");
   GBB_INFO("  --version, -v                 │ Shows version and build information");
-  GBB_INFO("  --vulkan-device-group <index> │ Selects the GPUs by their Vulkan device group");
+  GBB_INFO("  --vulkan-device-group <index> │ Selects Vulkan device group by index");
 #ifdef GBB_D3D12_ENABLED
-  GBB_INFO("  --dxgi-adapter <index>        │ Selects the GPUs by their DXGI adapter");
+  GBB_INFO("  --dxgi-adapter <index>        │ Selects DXGI adapter by index");
 #endif
   GBB_INFO("  --no-vulkan                   │ Disables Vulkan");
 #ifdef GBB_CUDA_ENABLED
@@ -50,8 +56,14 @@ void Options::printUsage() {
   GBB_INFO("  --no-d3d12                    │ Disables D3D12");
 #endif
   GBB_INFO("  --print-vulkan-mem-props      │ Prints memory properties for each physical Vulkan device");
-  GBB_INFO("  --duration <millis>           │ Sets the measuring period in milliseconds per transfer; default: 1000");
-  GBB_INFO("  --output <path>               │ Writes the results to a csv file");
+  GBB_INFO("  --duration <millis>           │ Sets the measurement duration in milliseconds per API and transfer "
+           "direction; default: 1000");
+  GBB_INFO("  --transfer-size <mib>         │ Sets the chunk size per individual transfer in MiB; default: 256");
+  GBB_INFO("  --output <path>               │ Writes the results to a CSV file");
+  GBB_INFO("gpu_bandwidth_bonanza runs transfers of --transfer-size sized memory chunks for --duration milliseconds "
+           "per API and direction. The average transfer speeds will be reported at the end. Devices can either be "
+           "specified by Vulkan device group index or by DXGI adapter index. All supported devices will be tested if "
+           "CUDA is the only enabled API.");
 }
 
 Options Options::fromArgs(const std::vector<std::string> &p_args) {
@@ -89,9 +101,15 @@ Options Options::fromArgs(const std::vector<std::string> &p_args) {
       GBB_THROW_UNLESS(++it != p_args.end(), "No value provided for --duration option.");
       try {
         options.durationPerDirection = std::chrono::milliseconds(std::stoi(*it));
-      } catch (const std::invalid_argument &ex) {
-        (void)ex;
+      } catch (...) {
         GBB_THROW("Invalid value provided for --duration option.");
+      }
+    } else if (*it == "--transfer-size") {
+      GBB_THROW_UNLESS(++it != p_args.end(), "No value provided for --transfer-size option.");
+      try {
+        options.byteSizePerTransfer = static_cast<size_t>(std::stoull(*it)) << 20;
+      } catch (...) {
+        GBB_THROW("Invalid value provided for --transfer-size option.");
       }
     } else if (*it == "--output") {
       GBB_THROW_UNLESS(++it != p_args.end(), "No value provided for --output option.");

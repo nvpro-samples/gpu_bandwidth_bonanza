@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ struct Options {
   bool noD3D12 = false;
   bool printVulkanMemProps = false;
   std::chrono::milliseconds durationPerDirection = std::chrono::milliseconds(1000);
+  size_t byteSizePerTransfer = 256ull << 20;
   std::optional<std::filesystem::path> output = {};
 };
 } // namespace gbb

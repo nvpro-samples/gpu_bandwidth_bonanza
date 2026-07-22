@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-project(gpu_bandwidth_bonanza VERSION 1.0.5)
+project(gpu_bandwidth_bonanza VERSION 1.0.6)
 
 # Enable only the nvpro_core2 libraries we use
 set(NVPRO2_ENABLE_DEFAULT OFF)
@@ -132,35 +132,35 @@ endif()
 
 foreach(SHADER_SOURCE_OBJECT ${GBB_SHADER_SOURCE_LISTS})
     # Each entry in GBB_SHADER_SOURCES is a comma-separated list of a source file,
-	# followed by its entrypoints.
+    # followed by its entrypoints.
     string(REPLACE "," ";" TMP_SHADER_SOURCE_LIST ${SHADER_SOURCE_OBJECT})
     list(POP_FRONT TMP_SHADER_SOURCE_LIST TMP_SHADER_SOURCE)
-	set(TMP_SHADER_SOURCE ${CMAKE_CURRENT_LIST_DIR}/${TMP_SHADER_SOURCE})
+    set(TMP_SHADER_SOURCE ${CMAKE_CURRENT_LIST_DIR}/${TMP_SHADER_SOURCE})
     list(APPEND GBB_SHADER_SOURCES ${TMP_SHADER_SOURCE})
 
     compile_slang(
-        "${TMP_SHADER_SOURCE}"                # Input
+        "${TMP_SHADER_SOURCE}" # Input
         "${CMAKE_BINARY_DIR}/include/shaders" # Output directory
-        TARGET      "spirv"                   #
-        NAME_SUFFIX ".spv"                    # Added to the output file + variable name
-        EXTRA_FLAGS -source-embed-style u32   # Extra slangc command-line flags
-        HEADERS_VAR _INL_FILE                 # _INL_FILE will be set to the output file
+        TARGET "spirv" #
+        NAME_SUFFIX ".spv" # Added to the output file + variable name
+        EXTRA_FLAGS -source-embed-style u32 # Extra slangc command-line flags
+        HEADERS_VAR _INL_FILE # _INL_FILE will be set to the output file
     )
     list(APPEND GBB_SHADERS_INL_FILES ${_INL_FILE})
-    
+
     if(WIN32)
-	    foreach(TMP_ENTRY ${TMP_SHADER_SOURCE_LIST})
-			compile_slang(
-				"${TMP_SHADER_SOURCE}"
-				"${CMAKE_BINARY_DIR}/include/shaders"
-				TARGET      "dxil"
-				NAME_SUFFIX ".${TMP_ENTRY}.dxil"
-				PROFILE     sm_6_0
-				EXTRA_FLAGS -source-embed-style u32 -entry ${TMP_ENTRY}
-				HEADERS_VAR _INL_FILE
-			)
-			list(APPEND GBB_SHADERS_INL_FILES ${_INL_FILE})
-		endforeach()
+        foreach(TMP_ENTRY ${TMP_SHADER_SOURCE_LIST})
+            compile_slang(
+                "${TMP_SHADER_SOURCE}"
+                "${CMAKE_BINARY_DIR}/include/shaders"
+                TARGET "dxil"
+                NAME_SUFFIX ".${TMP_ENTRY}.dxil"
+                PROFILE sm_6_0
+                EXTRA_FLAGS -source-embed-style u32 -entry ${TMP_ENTRY}
+                HEADERS_VAR _INL_FILE
+            )
+            list(APPEND GBB_SHADERS_INL_FILES ${_INL_FILE})
+        endforeach()
     endif()
 endforeach()
 

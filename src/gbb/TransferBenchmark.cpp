@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ TransferBenchmark::Result TransferBenchmark::run(Transfer &p_transfer, std::chro
     std::cout << '\r' << std::string(100, ' ') << '\r'
               << fmt::format("{}{:7.3f} GiB/s; {:4} ms remaining", p_transfer.getLabel(), transferSpeed,
                              std::chrono::duration_cast<std::chrono::milliseconds>(p_duration - elapsed).count());
+    std::cout.flush();
     transferSpeedSum += transferSpeed;
     errorCounts.emplace_back(result.errorCount);
   }
